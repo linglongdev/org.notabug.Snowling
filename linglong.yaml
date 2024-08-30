@@ -1,0 +1,60 @@
+version: "1"
+
+package:
+  id: org.notabug.Snowling
+  name: Snowling
+  version: 3.0.0.0
+  kind: app
+  description: |
+     A bowling game of luck
+
+base: org.deepin.foundation/23.0.0
+runtime: org.deepin.Runtime/23.0.1
+
+command:
+  - /opt/apps/org.notabug.Snowling/files/bin/snowling
+
+sources:
+  - kind: git
+    url: https://notabug.org/Vandarin/Snowling.git
+    version: master
+    commit: 384ecbd3d321f1147e6bc316dad24144b2880a81
+
+  - kind: git
+    url: https://github.com/upx/upx.git
+    version: master
+    commit: 1427b8137a6a3fcbf541e529d9de349230f4ebae
+
+  - kind: git
+    url: https://github.com/libsdl-org/SDL.git
+    version: master
+    commit: 155c3bb0a33a842d23f3dafc9bf541f0973cd686
+
+
+
+build: |
+
+  cd /project/linglong/sources/SDL.git/
+  cmake -Bbuild \
+        -DCMAKE_INSTALL_PREFIX=${PREFIX} \
+        -DCMAKE_INSTALL_LIBDIR=${PREFIX}/lib/${TRIPLET}
+  cmake --build build
+  cmake --build build --target install
+
+  cd /project/linglong/sources/upx.git/
+  cmake -Bbuild \
+        -DCMAKE_INSTALL_PREFIX=${PREFIX} \
+        -DCMAKE_INSTALL_LIBDIR=${PREFIX}/lib/${TRIPLET}
+  cmake --build build
+  cmake --build build --target install
+  
+  cd /project/linglong/sources/Snowling.git/
+  gcc main.c -I${PREFIX}/include -I inc -Ofast -lm -lSDL2 -lGLESv2 -lEGL -o snowling
+  strip --strip-unneeded snowling
+  upx --lzma --best snowling
+  mkdir -p ${PREFIX}/bin
+  mkdir -p ${PREFIX}/share/applications/
+  mkdir -p ${PREFIX}/share/icons/hicolor/192x192/apps/
+  cp snowling ${PREFIX}/bin/snowling
+  cp flatpak/snowling.desktop ${PREFIX}/share/applications/snowling.desktop
+  cp flatpak/snowling.png ${PREFIX}/share/icons/hicolor/192x192/apps/snowling.png
